@@ -1,0 +1,50 @@
+version: "3.3"
+services:
+  student-service:
+    image: student-service
+    container_name: student-service
+    build:
+      context: ./student_service
+    ports:
+      - 15000:15000
+    environment:
+      MONGO_USERNAME: "comp3122"
+      MONGO_PASSWORD: "12345"
+      MONGO_SERVER_HOST: "mongo"
+      MONGO_SERVER_PORT: "27017"
+    restart: on-failure
+  mongo:
+    image: mongo
+    container_name: db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: comp3122
+      MONGO_INITDB_ROOT_PASSWORD: 12345
+      MONGO_INITDB_DATABASE: admin
+    volumes:
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+      - mongo_volume:/data/db
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana/datasource.yaml:/etc/grafana/provisioning/datasources/default.yaml
+      - ./grafana/dashboard.yaml:/etc/grafana/provisioning/dashboards/default.yaml
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      GF_SECURITY_ADMIN_USER: "comp3122"
+      GF_SECURITY_ADMIN_PASSWORD: "20035673D"
+networks:
+  default:
+    name: ass1
+volumes:
+  mongo_volume:
+    name: mongo_vol
